@@ -1,0 +1,20 @@
+[
+	{
+		"label": "Quarkdown compile",
+		"command": "quarkdown",
+		"args": [
+			"c",
+			"$ZED_FILE"
+		]
+	},
+	{
+		"label": "Quarkdown preview",
+		"command": "quarkdown",
+		"args": [
+			"c",
+			"$ZED_FILE",
+			"-p",
+			"-w"
+		]
+	}
+]
