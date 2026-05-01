@@ -71,7 +71,7 @@ impl QuarkdownExtension {
                 let entry = entry.map_err(|e| format!("failed to load directory entry {e}"))?;
                 let filename = entry.file_name();
                 let filename = filename.to_str().unwrap();
-                if filename.starts_with("gleam-") && filename != version_dir {
+                if filename.starts_with("quarkdown-") && filename != version_dir {
                     fs::remove_dir_all(entry.path()).ok();
                 }
             }
