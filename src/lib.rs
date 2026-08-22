@@ -1,24 +1,29 @@
 use std::fs;
 
-use zed_extension_api::{self as zed, LanguageServerId, Result};
+use zed_extension_api::{
+    self as zed, Architecture, LanguageServerId, Os, Result, current_platform,
+};
+
+const NAME: &str = "quarkdown";
+const REPO: &str = "iamgio/quarkdown";
+
+const BIN_DIRECTORY: &str = "quarkdown/bin/quarkdown";
+
+const ASSET_LINUX: &str = "quarkdown-linux-x64.zip";
+const ASSET_WINDOWS: &str = "quarkdown-windows-x64.zip";
+const ASSET_MACOS_SILICON: &str = "quarkdown-macos-aarch64.zip";
+const ASSET_MACOS_INTEL: &str = "quarkdown-macos-x64.zip";
 
 struct QuarkdownExtension {
     cached_binary_path: Option<String>,
 }
 
 impl QuarkdownExtension {
-    fn language_server_binary_path(
+    fn download_and_cache_binary(
         &mut self,
         language_server_id: &LanguageServerId,
         _worktree: &zed::Worktree,
     ) -> Result<String> {
-        let current_dir = std::env::current_dir().unwrap();
-        println!("current_dir: {}", current_dir.display());
-        assert_eq!(
-            current_dir.file_name().unwrap().to_str().unwrap(),
-            "quarkdown"
-        );
-
         if let Some(path) = &self.cached_binary_path
             && fs::metadata(path).is_ok_and(|stat| stat.is_file())
         {
@@ -31,7 +36,7 @@ impl QuarkdownExtension {
         );
 
         let release = zed::latest_github_release(
-            "iamgio/quarkdown",
+            REPO,
             zed::GithubReleaseOptions {
                 require_assets: true,
                 pre_release: false,
@@ -40,7 +45,12 @@ impl QuarkdownExtension {
 
         let download_type = zed::DownloadedFileType::Zip;
 
-        let asset_name = "quarkdown.zip";
+        let asset_name = match current_platform() {
+            (Os::Linux, _) => ASSET_LINUX,
+            (Os::Windows, _) => ASSET_WINDOWS,
+            (Os::Mac, Architecture::Aarch64) => ASSET_MACOS_SILICON,
+            (Os::Mac, _) => ASSET_MACOS_INTEL,
+        };
 
         let asset = release
             .assets
@@ -48,8 +58,8 @@ impl QuarkdownExtension {
             .find(|asset| asset.name == asset_name)
             .ok_or_else(|| format!("no asset found matching {:?}", asset_name))?;
 
-        let version_dir = format!("quarkdown-{}", release.version);
-        let binary_path = format!("{version_dir}/quarkdown/bin/quarkdown");
+        let version_dir = format!("{NAME}-{}", release.version);
+        let binary_path = format!("{version_dir}/{BIN_DIRECTORY}");
 
         if !fs::metadata(&binary_path).is_ok_and(|stat| stat.is_file()) {
             zed::set_language_server_installation_status(
@@ -71,7 +81,7 @@ impl QuarkdownExtension {
                 let entry = entry.map_err(|e| format!("failed to load directory entry {e}"))?;
                 let filename = entry.file_name();
                 let filename = filename.to_str().unwrap();
-                if filename.starts_with("quarkdown-") && filename != version_dir {
+                if filename.starts_with("{NAME}-") && filename != version_dir {
                     fs::remove_dir_all(entry.path()).ok();
                 }
             }
@@ -94,8 +104,13 @@ impl zed::Extension for QuarkdownExtension {
         language_server_id: &LanguageServerId,
         worktree: &zed::Worktree,
     ) -> Result<zed::Command> {
+        let command = match worktree.which(NAME) {
+            Some(path) => path,
+            None => self.download_and_cache_binary(language_server_id, worktree)?,
+        };
+
         Ok(zed::Command {
-            command: self.language_server_binary_path(language_server_id, worktree)?,
+            command,
             args: vec!["language-server".to_string()],
             env: Default::default(),
         })
