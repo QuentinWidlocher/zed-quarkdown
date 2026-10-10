@@ -1,14 +1,17 @@
 id = "quarkdown"
 name = "Quarkdown"
-version = "0.2.0"
+version = "0.3.0"
 schema_version = 1
 authors = ["Quentin Widlocher <quentin@widlocher.com>"]
-description = "Quarkdown support"
+description = "Quarkdown support: syntax highlighting, language server, live preview and PDF export"
 repository = "https://github.com/QuentinWidlocher/zed-quarkdown"
 
 [language_servers.quarkdown]
 name = "Quarkdown LSP"
-language = "Quarkdown"
+languages = ["Quarkdown"]
+
+[language_servers.quarkdown.language_ids]
+"Quarkdown" = "quarkdown"
 
 [grammars.quarkdown]
 repository = "https://github.com/kinten108101/tree-sitter-quarkdown"
