@@ -1,20 +1,51 @@
 [
 	{
-		"label": "Quarkdown compile",
+		"label": "Quarkdown export HTML",
 		"command": "quarkdown",
 		"args": [
 			"c",
-			"$ZED_FILE"
-		]
+			"$ZED_FILENAME",
+			"--render=html"
+		],
+		"cwd": "$ZED_DIRNAME",
+		"save": "current",
+		"hide": "on_success"
+	},
+	{
+		"label": "Quarkdown export Markdown",
+		"command": "quarkdown",
+		"args": [
+			"c",
+			"$ZED_FILENAME",
+			"--render=markdown"
+		],
+		"cwd": "$ZED_DIRNAME",
+		"save": "current",
+		"hide": "on_success"
 	},
 	{
 		"label": "Quarkdown preview",
 		"command": "quarkdown",
 		"args": [
 			"c",
-			"$ZED_FILE",
-			"-p",
-			"-w"
-		]
+			"$ZED_FILENAME",
+			"--preview",
+			"--watch"
+		],
+		"cwd": "$ZED_DIRNAME",
+		"save": "current",
+		"reveal": "no_focus"
+	},
+	{
+		"label": "Quarkdown export PDF",
+		"command": "quarkdown",
+		"args": [
+			"c",
+			"$ZED_FILENAME",
+			"--pdf"
+		],
+		"cwd": "$ZED_DIRNAME",
+		"save": "current",
+		"hide": "on_success"
 	}
 ]
